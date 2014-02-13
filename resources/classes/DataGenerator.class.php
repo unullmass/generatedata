@@ -2,7 +2,7 @@
 
 /**
  * Our generator class. This does the work of interpreting the form data, passing the work off to the various
- * plugins and piecing the generateda data for returning to the client.
+ * plugins and piecing the generated data for returning to the client.
  * @author Ben Keen <ben.keen@gmail.com>
  * @package Core
  */
@@ -21,8 +21,8 @@ class DataGenerator {
 	private $currentBatchFirstRow;
 	private $currentBatchLastRow;
 	
-	//compression flag - set as per user choice
-	private $isCompressionRequired;
+	// compression flag - set as per user choice
+	private $isCompressionRequired = false;
 
 	// this may or may not exist. If the user is generating data from a saved data set, it will have a value. Otherwise
 	// it won't be included in $postData passed to the constructor
@@ -60,9 +60,9 @@ class DataGenerator {
             $this->numResults = $maxGeneratedRows;
         }
 
-		$this->countries  = isset($postData["gdCountries"]) ? $postData["gdCountries"] : array();
-		$this->dataTypes  = DataTypePluginHelper::getDataTypeHash(Core::$dataTypePlugins);
-		$this->postData   = $postData;
+		$this->countries = isset($postData["gdCountries"]) ? $postData["gdCountries"] : array();
+		$this->dataTypes = DataTypePluginHelper::getDataTypeHash(Core::$dataTypePlugins);
+		$this->postData  = $postData;
 
 		if (isset($postData["configurationID"])) {
 			$this->configurationID = $postData["configurationID"];
@@ -89,9 +89,10 @@ class DataGenerator {
 			$this->exportType = $currExportType;
 			break;
 		}
-		//set the value of compressionflag
-		if($postData["gdExportType"] == "promptDownload" && $postData["gdExportTarget_promptDownload_zip"] == "DoZip"){
-			$isCompressionRequired = true;
+
+		// set the value of isCompressionRequired
+		if ($postData["gdExportTarget"] == "promptDownload" && $postData["gdExportTarget_promptDownload_zip"] == "doZip") {
+			$this->isCompressionRequired = true;
 		}
 	}
 
@@ -101,6 +102,7 @@ class DataGenerator {
 	 */
 	public function generate() {
 		$response = $this->exportType->generate($this);
+
 		$response["contentTypeHeader"] = $this->exportType->getContentTypeHeader();
 		$response["isComplete"] = $this->isLastBatch;
 

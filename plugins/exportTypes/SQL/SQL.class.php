@@ -18,7 +18,7 @@ class SQL extends ExportTypePlugin {
 	protected $isEnabled = true;
 	protected $exportTypeName = "SQL";
 	protected $jsModules = array("SQL.js");
-	protected $codeMirrorModes = array("mysql");
+	protected $codeMirrorModes = array("sql");
 	public $L = array();
 
 	// stores various info about the current generation set
@@ -154,9 +154,13 @@ class SQL extends ExportTypePlugin {
 					<input type="radio" name="etSQL_statementType" id="etSQL_statementType1" value="insert" checked="checked" />
 					<label for="etSQL_statementType1">INSERT</label>
 				</div>
+				<div id="etSQL_insertIgnore">
+					<input type="radio" name="etSQL_statementType" id="etSQL_statementType2" value="insertignore" />
+					<label for="etSQL_statementType2">INSERT IGNORE</label>
+				</div>
 				<div>
-					<input type="radio" name="etSQL_statementType" id="etSQL_statementType2" value="update" />
-					<label for="etSQL_statementType2">UPDATE</label>
+					<input type="radio" name="etSQL_statementType" id="etSQL_statementType3" value="update" />
+					<label for="etSQL_statementType3">UPDATE</label>
 				</div>
 			</td>
 		</tr>
@@ -249,6 +253,17 @@ END;
 				}
 				$rowDataStr = implode(",", $displayVals);
 				$content .= "INSERT INTO {$this->backquote}{$this->tableName}{$this->backquote} ($colNamesStr) VALUES ($rowDataStr);$endLineChar";
+			} elseif ($this->sqlStatementType == "insertignore") {
+				$displayVals = array();
+				for ($j=0; $j<$numCols; $j++) {
+					if ($this->numericFields[$j]) {
+						$displayVals[] = $this->data["rowData"][$i][$j];
+					} else {
+						$displayVals[] = "\"" . $this->data["rowData"][$i][$j] . "\"";
+					}
+				}
+				$rowDataStr = implode(",", $displayVals);
+				$content .= "INSERT IGNORE INTO {$this->backquote}{$this->tableName}{$this->backquote} ($colNamesStr) VALUES ($rowDataStr);$endLineChar";
 			} else {
 				$pairs = array();
 				for ($j=0; $j<$numCols; $j++) {
@@ -407,7 +422,7 @@ END;
 					if ($this->numericFields[$j]) {
 						$displayVals[] = $this->data["rowData"][$i][$j];
 					} else {
-						$displayVals[] = "\"" . $this->data["rowData"][$i][$j] . "\"";
+						$displayVals[] = "'" . preg_replace("/'/", "''", $this->data["rowData"][$i][$j]) . "'";
 					}
 				}
 				$rowDataStr = implode(",", $displayVals);
@@ -419,7 +434,7 @@ END;
 					if ($this->numericFields[$j]) {
 						$colValue = $this->data["rowData"][$i][$j];
 					} else {
-						$colValue = "\"" . $this->data["rowData"][$i][$j] . "\"";
+						$colValue = "'" . preg_replace("/'/", "''", $this->data["rowData"][$i][$j]) . "'";
 					}
 					$pairs[]  = "{$this->backquote}{$colName}{$this->backquote} = $colValue";
 				}
